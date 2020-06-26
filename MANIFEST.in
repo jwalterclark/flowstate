@@ -1,2 +1,3 @@
-include salt_state_graph/testdata/*.dot
-include salt_state_graph/testdata/*.json
+include .license.txt
+include .artifacts/assets/test_*.dot
+include .artifacts/assets/test_*.json

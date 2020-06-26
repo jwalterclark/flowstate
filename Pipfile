@@ -1,0 +1,20 @@
+[packages]
+requests="*"
+pandas="*"
+pydot = "*"
+networkx="*"
+
+[dev-packages]
+pre-commit="*"
+pytest="*"
+pytest-quickcheck="*"
+mypy="*"
+pytest-mypy="*"
+pytest-cov = "*"
+tox="*"
+invoke="*"
+twine="*"
+rope = "*"
+bpython = "*"
+
+[requires]

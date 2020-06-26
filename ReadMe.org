@@ -1,0 +1,85 @@
+# -*- mode: org -*-
+#+SETUPFILE: ~/.vault/cfgs/emacs/apps/org/org-setupfile
+#+TITLE: Introduction to FlowState (for Saltstack)
+#+SUBTITLE: FlowState is a tool for visualising the runtime dependency graph of a Salt highstate.
+
+
+** Purpose
+
+FlowState is a tool for visualising the runtime dependency graph of a [[https://github.com/saltstack/salt][Salt]] highstate.
+
+It takes the json output of =state.show_highstate= or =state.show_sls=
+from Salt and produces a program written in [[http://www.graphviz.org/doc/info/lang.html][dot]], which is a tool from
+Graphviz for defining an acyclic graph.
+
+States are nodes and dependencies are edges. =require= and =require_in= are blue; =watch= and =watch_in= are red.
+
+Some examples, with the dot programs rendered as png:
+
+[[http://i.imgur.com/wETR0WG.png]]
+
+[[http://i.imgur.com/LJ6ckzr.png]]
+
+** Usage
+
+The tool expects the JSON output of =show_highstate= or =show_sls= over stdin.
+It outputs =dot= code representing the dependency graph. The dot code defines a
+single digraph called "states".
+
+For example, if you have a salt master running:
+
+#+begin_src bash
+  salt 'minion1' state.show_highstate --out json | flowstate
+#+end_src
+
+You can write the dot output to a file, or pipe it further into the `dot` tool
+from GraphViz. In this example, we produce a png called `output.png`:
+
+#+begin_src bash
+  salt 'minion*' state.show_highstate --out json \
+	| flowstate \
+	| dot -Tpng -o output.png
+#+end_src
+
+The tool currently only supports rendering the output from one minion. If you
+give it output with two minions, it'll report an error.
+
+** Installation
+
+Install directly from PyPi:
+
+#+begin_src bash
+  pip install flowstate
+#+end_src
+
+Or clone this repository and use =setup.py=:
+
+#+begin_src bash
+  python setup.py install
+#+end_src
+
+Unfortunately, the version of the =pydot= package in PyPi doesn't work in
+Python 2.7+. We're working on getting this up to date. In the meantime, please
+use this fork to install the `pydot` package first:
+
+https://github.com/nlhepler/pydot
+
+
+*** dot
+
+Most operating systems have a package for it, usually as part of GraphViz.
+
+- *Debian / Ubuntu*
+  #+begin_src bash
+    apt-get install graphviz
+  #+end_src
+
+- *OSX with homebrew*
+  #+begin_src bash
+	brew install graphviz
+  #+end_src
+
+
+
+** Acknowledgements
+- [[https://github.com/genesis-matrix/flowstate][FlowState]] is forked from the [[https://github.com/ceralena/salt-state-graph][salt-state-graph]] project by [[https://github.com/ceralena][@ceralena]].

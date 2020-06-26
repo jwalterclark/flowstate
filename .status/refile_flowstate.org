@@ -1,0 +1,62 @@
+* TODO tasklist-salt_flowstate
+  :PROPERTIES:
+  :ID:       b1b60e8f-596e-4509-98ba-6e524b1bcee8
+  :END:
+** support backends aside from dot (e.g. JSON to feed into D3)
+** add more tests
+** add =pydot= as a proper dependency once it's updated in pypi
+** TODO add .artifacts folder w/ git-lfs attributes
+   :PROPERTIES:
+   :ID:       cb9b244d-f612-4fac-8d21-537b39cab980
+   :END:
+ [2020-06-25 Thu 23:41]
+ [[id:b1b60e8f-596e-4509-98ba-6e524b1bcee8][tasklist-salt_flowstate]]
+** TODO enable github-pages in /docs dir
+   :PROPERTIES:
+   :ID:       e270e741-51ac-4418-bd4f-51d1b39e222f
+   :END:
+ [2020-06-25 Thu 23:44]
+ [[id:cb9b244d-f612-4fac-8d21-537b39cab980][add .artifacts folder w/ git-lfs attributes]]
+** TODO rename project to salt_flowstate from flowstate_viz
+   :PROPERTIES:
+   :ID:       10147719-684e-44bf-b870-e45681990c9e
+   :END:
+ [2020-06-25 Thu 23:44]
+ [[id:e270e741-51ac-4418-bd4f-51d1b39e222f][enable github-pages in /docs dir]]
+** TODO mark repo nickgarber/flowstate_viz as archived/read-onyl
+   :PROPERTIES:
+   :ID:       6b492cdf-bb23-4afd-a7a2-f8742df66215
+   :END:
+ [2020-06-25 Thu 23:44]
+ [[id:10147719-684e-44bf-b870-e45681990c9e][rename project to salt_flowstate from flowstate_viz]]
+* TODO switch to using networkx as baseline internal data format
+:PROPERTIES:
+:ID: b61952c6-0d67-4640-909f-942c368b7511
+:END:
+[2020-06-25 Thu 23:47]
+[[id:6b492cdf-bb23-4afd-a7a2-f8742df66215][mark repo nickgarber/flowstate_viz as archived/read-onyl]]
+* TODO update/eval the 'test_*' testing files
+:PROPERTIES:
+:ID: 6ba82a1f-9f67-499a-82ea-5ee5b99413ee
+:END:
+[2020-06-27 Sat 05:11]
+[[file:~/.extrefs/salt_flowstate/salt_flowstate/test_graph.py::import os]]
+- context ::
+  - [0/0] overview
+    - tests using these example files are failing, (as of [2020-06-27 Sat 05:14])
+    - this may be because the introduction of new attributes: such as edge-styles and color
+* TODO add instructions on available option for how to pip-install flowstate
+:PROPERTIES:
+:ID: 911209e8-1779-4a2a-94c3-b0ed25c50d9f
+:END:
+[2020-07-05 Sun 12:27]
+[[file:~/.extrefs/salt_flowstate/.dir-locals.el][file:~/.extrefs/salt_flowstate/.dir-locals.el]]
+- context ::
+  - [0/3] overview
+    - [ ] git+https from github trunk
+    - [ ] git+https from github commit-id
+    - [ ] archive from github tag
+    - ... others?
+  - info/notes
+    - srcs
+      - https://adamj.eu/tech/2019/03/11/pip-install-from-a-git-repository/

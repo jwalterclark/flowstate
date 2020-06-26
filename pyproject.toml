@@ -1,0 +1,71 @@
+# -*- coding: utf-8; mode: conf-toml -*-
+##
+##
+##
+
+
+
+[meta]
+NAME="flowstate"
+VERSION="0.1"
+AUTHOR="Nick Garber"
+AUTHOR_EMAIL = "nick.garber@gmail.com"
+#MAINTAINER=
+#MAINTAINER_EMAIL=
+URL = "https://github.com/genesis-matrix/flowstate"
+DESCRIPTION = "Visualize Highstate data produced by Saltstack"
+#DOWNLOAD_URL =
+# Trove classifiers - Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
+CLASSIFIERS = [
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: Implementation :: CPython",
+	]
+#PLATFORMS =
+LICENSE = "GNU LGPL"
+REQUIRES_PYTHON = ">=3.6"
+SCRIPTS=""
+ENTRY_POINTS__CONSOLE_SCRIPTS= [
+        "flowstate_render=flowstate.client_cli:main",
+	]
+[path]
+README = "docs/ReadMe.md"
+LICENSE = ".license.txt"
+PACKAGE_DIR = "${meta:NAME}"
+
+
+
+[build-system]
+requires = [ "setuptools >= 35.0.2", "wheel >= 0.29.0"]
+build-backend = "setuptools.build_meta"
+
+
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --doctest-modules --mypy"
+testpaths = [
+        "tests",
+        "integration",
+	]
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py36,py37,py38
+
+[testenv]
+# arguments to 'pip install'
+deps =
+	https://github.com/nlhepler/pydot/archive/master.zip
+	pytest-cov
+	pytest
+
+# cli to execute tests w/i a testenv
+commands = flake8,pytest --cov=flowstate,pytest"""
+
+
+
+## EOF
