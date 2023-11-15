@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import json
 import sys
+from typing import Any
 
 import pydot
 
@@ -20,7 +21,7 @@ def find(obj, find_key):
     return final
 
 
-def find_inner(obj, find_key):
+def find_inner(obj, find_key) -> list:
     """
     Recursively search through the data structure to find objects
     keyed by find_key.
@@ -47,11 +48,12 @@ def find_inner(obj, find_key):
     return results
 
 
-def make_node_name(state_type, state_label):
-    return "{0} - {1}".format(state_type.upper(), state_label)
+def make_node_name(function_name: str, state_label: str):
+    node_name = f"{function_name}: {state_label}"
+    return node_name
 
 
-def find_edges(states, relname):
+def find_edges(states, relname: str) -> str:
     """
     Use find() to recursively find objects at keys matching
     relname, yielding a node name for every result.
@@ -59,8 +61,12 @@ def find_edges(states, relname):
     try:
         deps = find(states, relname)
         for dep in deps:
-            for dep_type, dep_name in dep.items():
-                yield make_node_name(dep_type, dep_name)
+            if isinstance(dep, dict):
+                for state_module, dep_name in dep.items():
+                    state_module, _, _ = state_module.partition(".")
+                    yield f"{state_module}: {dep_name}"
+            else:
+                yield dep
     except AttributeError as e:
         sys.stderr.write("Bad state: {0}\n".format(str(states)))
         raise e
@@ -71,7 +77,7 @@ class Graph(object):
         state_obj = json.load(input)
         self.graph = pydot.Dot("states", graph_type="digraph")
 
-        rules = {
+        rules: dict[str, dict[str, str | bool]] = {
             "require": {"color": "blue"},
             "require_in": {"color": "blue", "reverse": True},
             "require_any": {"color": "blue", "style": "dashed"},
@@ -97,47 +103,110 @@ class Graph(object):
                 )
             )
 
-        minion_obj = list(state_obj.values())[0]
-        for top_key, props in minion_obj.items():
+        minion_obj: dict[str, dict[str, str | list[str | dict[str | Any]]]] = list(
+            state_obj.values()
+        )[0]
+
+        self.nodes: dict[str, pydot.Node] = {}
+        sls = ""
+
+        # sort to prioritiize dunders
+        for state_id, props in sorted(minion_obj.items()):
             # Add a node for each state type embedded in this state
             # keys starting with underscores are not candidates
 
-            if top_key == "__extend__":
+            if state_id == "__extend__":
                 # TODO - merge these into the main states and remove them
                 sys.stderr.write(
                     "Removing __extend__ states:\n{0}\n".format(str(props))
                 )
                 continue
 
-            for top_key_type, states in list(props.items()):
-                if top_key_type[:2] == "__":
+            for state_module, function_args in props.items():
+                if state_module == "__sls__":
+                    sls = f"{state_module[2:-2]}: {function_args}"
+                    continue
+                elif (
+                    len(state_module) > 2
+                    and state_module[:2] == "__"
+                    and state_module[-2:] == "__"
+                ):
                     continue
 
-                node_name = make_node_name(top_key_type, top_key)
-                self.graph.add_node(pydot.Node(node_name))
+                state_module, _, function_name = state_module.partition(".")
 
-                for edge_type, ruleset in list(rules.items()):
-                    for relname in find_edges(states, edge_type):
-                        if "style" not in ruleset or ruleset["style"] is None:
-                            ruleset["style"] = ""
-                        if "reverse" in ruleset and ruleset["reverse"]:
-                            self.graph.add_edge(
-                                pydot.Edge(
-                                    node_name,
-                                    relname,
-                                    style=ruleset["style"],
-                                    color=ruleset["color"],
+                for arg in function_args:
+                    if isinstance(arg, dict) and arg.get("name"):
+                        state_name = arg["name"]
+                        break
+                else:
+                    state_name = state_id
+
+                node_name = make_node_name(state_module, state_id)
+                node = pydot.Node(state_id, label=node_name)
+                # gather nodes by name and ID, w/ and w/o module
+                self.nodes[sls] = node
+                self.nodes[f"{state_module}: {state_id}"] = node
+                self.nodes[f"{state_module}: {state_name}"] = node
+                self.nodes[state_id] = node
+                self.nodes[state_name] = node
+                self.graph.add_node(node)
+
+        for state_id, props in minion_obj.items():
+            # Add a node for each state type embedded in this state
+            # keys starting with underscores are not candidates
+
+            if state_id == "__extend__":
+                # TODO - merge these into the main states and remove them
+                sys.stderr.write(
+                    "Removing __extend__ states:\n{0}\n".format(str(props))
+                )
+                continue
+
+            for state_module, function_args in props.items():
+                # ignore dunder data here
+                if (
+                    len(state_module) > 2
+                    and state_module[:2] == "__"
+                    and state_module[-2:] == "__"
+                ):
+                    continue
+
+                state_module, _, function_name = state_module.partition(".")
+
+                for arg in function_args:
+                    if isinstance(arg, dict) and arg.get("name"):
+                        state_name = arg["name"]
+                        break
+                else:
+                    state_name = state_id
+
+                for relname, ruleset in rules.items():
+                    for relname in find_edges(function_args, relname):
+                        try:
+                            relnode = self.nodes[relname]
+                            if "style" not in ruleset or ruleset["style"] is None:
+                                ruleset["style"] = ""
+                            if "reverse" in ruleset and ruleset["reverse"]:
+                                self.graph.add_edge(
+                                    pydot.Edge(
+                                        state_id,
+                                        relnode,
+                                        style=ruleset["style"],
+                                        color=ruleset["color"],
+                                    )
                                 )
-                            )
-                        else:
-                            self.graph.add_edge(
-                                pydot.Edge(
-                                    relname,
-                                    node_name,
-                                    style=ruleset["style"],
-                                    color=ruleset["color"],
+                            else:
+                                self.graph.add_edge(
+                                    pydot.Edge(
+                                        relnode,
+                                        state_id,
+                                        style=ruleset["style"],
+                                        color=ruleset["color"],
+                                    )
                                 )
-                            )
+                        except Exception as e:
+                            pass
 
     def render(self, fmt):
         if fmt == "dot":
